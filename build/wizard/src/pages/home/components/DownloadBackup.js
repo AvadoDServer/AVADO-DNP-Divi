@@ -53,7 +53,7 @@ const Comp = ({ rpcClient, session, onSuccess }) => {
             */
             const copyFileFromResponse = JSON.parse(await session.call("copyFileFrom.dappmanager.dnp.dappnode.eth", [],
                 {
-                    id: "qtum.avado.dnp.dappnode.eth",
+                    id: "divi.avado.dnp.dappnode.eth",
                     fromPath: walletBackupPath
                 }
             ));
@@ -74,7 +74,7 @@ const Comp = ({ rpcClient, session, onSuccess }) => {
             }
 
             const blob = dataUriToBlob(dataUri);
-            const fileName = 'qtum-wallet.dat';
+            const fileName = 'divi-wallet.dat';
 
             saveAs(blob, fileName);
             if (onSuccess) {

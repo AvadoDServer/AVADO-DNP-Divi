@@ -1,20 +1,20 @@
 version: '3.4'
 services:
-  qtum.avado.dnp.dappnode.eth:
-    image: 'qtum.avado.dnp.dappnode.eth:0.0.1'
+  divi.avado.dnp.dappnode.eth:
+    image: 'divi.avado.dnp.dappnode.eth:0.0.1'
     build:
       context: ./build
       args:
-        - VERSION=mainnet-fastlane-v0.20.3
+        - VERSION=2.5.1
     environment:
-      - EXTRA_OPTS=
+      - EXTRA_OPTS=-testnet
     volumes:
-      - 'data:/package/data'
+      - 'data:/package/data/divi'
     ports:
-      - '3888:3888'
-      - '3889:3889'
-      - '13888:13888'
-      - '13889:13889'
+      - '51472:51472' # mainnet
+      - '51474:51474' # testnet
+      - '51473:51473' # mainnet rpc
+      - '51475:51475' # testnet rpc
       - '80:80'
       - '443:443'
     logging:

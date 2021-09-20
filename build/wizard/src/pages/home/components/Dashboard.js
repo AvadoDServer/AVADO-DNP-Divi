@@ -1,5 +1,5 @@
 import React from "react";
-import QtumInfo from "./QtumInfo";
+import DiviInfo from "./DiviInfo";
 import autobahn from "autobahn-browser";
 import DownloadBackup from "./DownloadBackup";
 import RestoreBackup from "./RestoreBackup";
@@ -18,7 +18,7 @@ const Comp = () => {
     const [backupRequired, setBackupRequired] = React.useState(undefined);
     const [backupRequiredClockTick, setBackupRequiredClockTick] = React.useState(0);
 
-    const rpcClient = new Client(new RequestManager([new HTTPTransport("http://qtum.avadopackage.com/rpc")]));
+    const rpcClient = new Client(new RequestManager([new HTTPTransport("http://divi.avadopackage.com/rpc")]));
 
     React.useEffect(() => {
         const timer = setInterval(() => {
@@ -53,11 +53,14 @@ const Comp = () => {
 
     React.useEffect(() => {
         const checkIfBackupRequired = async () => {
+            // @TODO REMOVE!!!
+            setBackupRequired(false);
+
             const response = await monitor.getEnv();
             const backupRequired = response.data.BACKUP_REQUIRED;
             // we need to create an address when BACKUP_REQUIRED true as it means package is recently installed
             if (backupRequired) {
-                await rpcClient.request({ method: 'getnewaddress', params: ['', 'legacy'] });
+                await rpcClient.request({ method: 'getnewaddress', params: [''] });
             }
             setBackupRequired(response.data.BACKUP_REQUIRED);
         }
@@ -89,11 +92,8 @@ const Comp = () => {
         return (
             <>
                 <div className="setting">
-                    <QtumInfo rpcClient={rpcClient} />
-                    <a href="http://my.avado/#/Packages/qtum.avado.dnp.dappnode.eth/detail" target="_blank">show node logs</a>
-                    <br />
-                    <br />
-                    <a href="https://qtum.avadopackage.com/" className="button" target="_blank">Open Wallet UI</a>
+                    <DiviInfo rpcClient={rpcClient} />
+                    <a href="http://my.avado/#/Packages/divi.avado.dnp.dappnode.eth/detail" target="_blank">show node logs</a>
                 </div>
 
                 <div className="setting">
@@ -115,7 +115,7 @@ const Comp = () => {
 
                                         {tab === "backup" && (
                                             <section className="is-medium has-text-white">
-                                                <p className="">You can download your wallet backup. This is very important when you stake Qtum since wallet holds the private keys.</p>
+                                                <p className="">You can download your wallet backup. This is very important when you stake Divi since wallet holds the private keys.</p>
                                                 <DownloadBackup rpcClient={rpcClient} session={wampSession} />
                                             </section>
                                         )}
@@ -146,10 +146,10 @@ const Comp = () => {
             <section className="is-medium has-text-white">
                 <div className="columns is-mobile">
                     <div className="column is-8-desktop is-10">
-                        <h1 className="title is-1 is-spaced has-text-white">Qtum node</h1>
+                        <h1 className="title is-1 is-spaced has-text-white">Divi node</h1>
                     </div>
                 </div>
-                <p className="">A node and wallet for interacting with the Qtum network</p>
+                <p className="">A node and wallet for interacting with the Divi network</p>
             </section>
             <br />
             {backupRequired === undefined ? <p className="has-text-white">loading..</p> : backupRequired ? renderBackup() : renderInfo()}

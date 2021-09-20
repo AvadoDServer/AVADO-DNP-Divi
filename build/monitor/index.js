@@ -12,11 +12,9 @@ const db = new JSONdb(dbFile);
 console.log("Monitor starting...");
 
 // defaults
-const defaults =
-{
-    "DELEGATION_FEE_PERCENT": 10,
-    "MIN_DELEGATION_AMOUNT": 100,
-    "BACKUP_REQUIRED": true,
+const defaults = {
+    BACKUP_REQUIRED: true,
+    COLLATERAL_HASH: null,
 };
 
 const server = restify.createServer({
@@ -51,13 +49,13 @@ server.post("/setenv", async (req, res) => {
         await db.set(key, req.body[key]);
     })
 
-    restartQtum();
+    restartDivi();
 
     res.send(200, db.JSON());
 });
 
-server.post("/restartQtum", async (req, res) => {
-    restartQtum();
+server.post("/restartDivi", async (req, res) => {
+    restartDivi();
     res.send(200);
 });
 
@@ -66,24 +64,8 @@ server.get('/*', restify.plugins.serveStaticFiles(`${__dirname}/wizard`, {
     etag: false,
 }));
 
-const syncQtumConf = () => {
-    const qtumConfigPath = '/package/data/qtum.conf';
-    const config = ini.parse(fs.readFileSync(qtumConfigPath, 'utf-8'));
-    const envVariablesToQtumConfigVariables = {
-        "DELEGATION_FEE_PERCENT": "stakingminfee",
-        "MIN_DELEGATION_AMOUNT": "stakingminutxovalue",
-    };
-
-    for (const [envVarName, qtumConfigVarName] of Object.entries(envVariablesToQtumConfigVariables)) {
-        config[qtumConfigVarName] = db.get(envVarName);
-    }
-
-    fs.writeFileSync(qtumConfigPath, ini.stringify(config));
-}
-
-const restartQtum = () => {
-    syncQtumConf();
-    const service = "qtum";
+const restartDivi = () => {
+    const service = "divi";
     supervisordclient.stopProcess(service, (err, result) => {
         if (err) {
             console.log(`error stopping service ${service}`, err);
@@ -137,7 +119,7 @@ const main = async () => {
         } else {
             console.log(`A config file exists - attemtping to start service`);
             console.log(censor(db.JSON()));
-            restartQtum();
+            restartDivi();
         }
     }
 

@@ -1,23 +1,22 @@
 import React from "react";
-import "./QtumInfo.css";
+import "./DiviInfo.css";
 import DisplayPrivateKeyModal from "./DisplayPrivateKeyModal";
-import ConfigInput from "./ConfigInput";
+import SetupMasterNode from "./SetupMasternode";
 import spinner from "../../../assets/spinner.svg";
 import checkmark from "../../../assets/green-checkmark-line.svg";
-import humanizeDuration from "humanize-duration";
 
 const Comp = ({ rpcClient }) => {
 
     const [addresses, setAddresses] = React.useState(undefined);
     const [balance, setBalance] = React.useState(undefined);
-    const [isStaking, setIsStaking] = React.useState(undefined);
     const [nodePeers, setNodePeers] = React.useState();
-    const [expectedRewardTime, setExpectedRewardTime] = React.useState(undefined);
     const [isSynced, setIsSycned] = React.useState(undefined);
     const [clockTick, setClockTick] = React.useState(0);
     const [isPrivateKeyModalVisible, setIsPrivateKeyModalVisible] = React.useState(false);
     const [privateKeyAddress, setPrivateKeyAddress] = React.useState(undefined);
     const [privateKey, setPrivateKey] = React.useState(undefined);
+    const [isMasternodeSetup, setIsMasternodeSetup] = React.useState(undefined);
+    const [isSetupMasternodeModalVisible, setIsSetupMasternodeModalVisible] = React.useState(false);
 
     React.useEffect(() => {
         const timer = setInterval(() => {
@@ -31,13 +30,13 @@ const Comp = ({ rpcClient }) => {
 
     React.useEffect(() => {
         const createAddress = async () => {
-            return await rpcClient.request({ method: 'getnewaddress', params: ['', 'legacy'] });
+            return await rpcClient.request({ method: 'getnewaddress', params: [''] });
         }
 
         const fetchAddresses = async () => {
-            let labels;
+            let accounts;
             try {
-                labels = await rpcClient.request({ method: 'listlabels', params: [''] });
+                accounts = await rpcClient.request({ method: 'listaccounts', params: [] });
             } catch (err) {
                 console.log(`Error while getting labels. Err: ${err.message}`);
                 return;
@@ -46,9 +45,9 @@ const Comp = ({ rpcClient }) => {
             let addresses = [];
 
             try {
-                for (const label of labels) {
-                    const result = await rpcClient.request({ method: 'getaddressesbylabel', params: [label] });
-                    addresses.push(...Object.keys(result));
+                for (const [account, _] of Object.entries(accounts)) {
+                    const result = await rpcClient.request({ method: 'getaddressesbyaccount', params: [account] });
+                    addresses.push(...result);
                 }
             } catch (err) {
                 console.log(`Error while getting addresses by label. Err: ${err.message}`);
@@ -62,15 +61,22 @@ const Comp = ({ rpcClient }) => {
             setAddresses(addresses);
         }
 
+        const fetchMasternodeStatus = async () => {
+            try {
+                const response = await rpcClient.request({ method: 'getmasternodestatus', params: [] });
+                setIsMasternodeSetup(true);
+                console.log(response)
+            } catch (err) {
+                if (err.message.includes("This is not a masternode")) {
+                    setIsMasternodeSetup(false);
+                }
+            }
+
+        }
+
         const fetchWalletInfo = async () => {
             const walletInfo = await rpcClient.request({ method: 'getwalletinfo' });
             setBalance(walletInfo.balance);
-        }
-
-        const fetchStakingInfo = async () => {
-            const stakingInfo = await rpcClient.request({ method: 'getstakinginfo' });
-            setIsStaking(stakingInfo.staking);
-            setExpectedRewardTime(stakingInfo.expectedtime * 1000); // seconds -> milliseconds
         }
 
         const fetchBlockchainInfo = async () => {
@@ -85,9 +91,9 @@ const Comp = ({ rpcClient }) => {
 
         fetchAddresses();
         fetchWalletInfo();
-        fetchStakingInfo();
         fetchBlockchainInfo();
         fetchPeers();
+        fetchMasternodeStatus();
     }, [clockTick]);
 
     const fetchPrivateKey = async (address) => {
@@ -118,14 +124,6 @@ const Comp = ({ rpcClient }) => {
                             <td>{balance === undefined ? "loading.." : !isSynced ? 'node not synced..' : balance}</td>
                         </tr>
                         <tr>
-                            <td>staking</td>
-                            <td>{isStaking === undefined ? "loading.." : !isSynced ? 'node not synced..' : isStaking === false ? "no" : "yes"}</td>
-                        </tr>
-                        <tr>
-                            <td>expected reward time</td>
-                            <td>{expectedRewardTime === undefined ? "loading.." : !isSynced ? 'node not synced..' : expectedRewardTime === 0 ? "never" : humanizeDuration(expectedRewardTime, { round: true, units: ['d', 'h', 'm'] })}</td>
-                        </tr>
-                        <tr>
                             <td>connected peers</td>
                             <td>{nodePeers || "loading.."}</td>
                         </tr>
@@ -135,28 +133,34 @@ const Comp = ({ rpcClient }) => {
                         </tr>
                     </tbody></table>
 
-
-                <ConfigInput name="Minimum Delegation Fee(%)" envName="DELEGATION_FEE_PERCENT" />
-                <ConfigInput name="Minimum Delegation Amount" envName="MIN_DELEGATION_AMOUNT" />
-
                 {!isSynced ? (
                     <div style={{ marginTop: 10 }} className="level">
                         <div className="level-left">
                             <span class="icon is-medium ">
                                 <img alt="spinner" src={spinner} />
                             </span>
-                            <p className="has-text-white is-size-5 has-text-weight-bold">Waiting for Qtum node to finish bootstrapping & syncing</p>
+                            <p className="has-text-white is-size-5 has-text-weight-bold">Waiting for Divi node to finish bootstrapping & syncing</p>
                         </div>
                     </div>
                 ) : (
                     <div className="level">
                         <div className="level-left">
                             <img className="icon is-medium" alt="checkmark" src={checkmark} />
-                            <p className="has-text-white is-size-5 has-text-weight-bold">Qtum node is ready</p>
+                            <p className="has-text-white is-size-5 has-text-weight-bold">Divi node is ready</p>
                         </div>
                     </div>
                 )
                 }
+
+                {isMasternodeSetup !== undefined ? (
+                    // @TODO it should be disabled if not synced!
+                    // <button disabled={!isSynced} onClick={() => setIsSetupMasternodeModalVisible(true)} style={{ marginLeft: 5 }}>Setup Masternode</button>
+                    <button onClick={() => setIsSetupMasternodeModalVisible(true)} style={{ marginLeft: 5 }}>Setup Masternode</button>
+                ) : ''}
+                {isSetupMasternodeModalVisible ? (
+                    <SetupMasterNode rpcClient={rpcClient} />
+                ) : ''}
+
 
                 <div style={{ marginTop: 15 }}>
                     <p className="has-text-white has-text-weight-bold">Addresses in wallet: </p>

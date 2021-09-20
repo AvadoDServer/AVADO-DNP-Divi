@@ -1,1 +1,1 @@
-# AVADO-DNP-Qtum
+# AVADO-DNP-Divi

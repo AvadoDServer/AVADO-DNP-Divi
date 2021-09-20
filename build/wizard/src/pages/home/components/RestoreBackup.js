@@ -1,8 +1,6 @@
 import React from "react";
 import monitor from "../../../util/monitor";
 
-const packageName = "qtum.avado.dnp.dappnode.eth";
-
 const Comp = ({ session }) => {
 
     const [uploadResult, setUploadResult] = React.useState();
@@ -26,7 +24,7 @@ const Comp = ({ session }) => {
                 "copyFileTo.dappmanager.dnp.dappnode.eth",
                 [],
                 {
-                    id: packageName,
+                    id: "divi.avado.dnp.dappnode.eth",
                     dataUri: dataUri,
                     filename: filename,
                     toPath: path
@@ -36,11 +34,11 @@ const Comp = ({ session }) => {
     }
 
     async function restoreWallet(file) {
-        const path = "/package/data/qtum";
+        const path = "/package/data/divi";
         const filename = `wallet.dat`;
         try {
             await uploadFile(file, path, filename);
-            await monitor.restartQtum();
+            await monitor.restartDivi();
             setUploadResult("Wallet restored successfully. Changes will be effective shortly..");
         } catch (err) {
             setUploadResult("Wallet could not be restored.");
